@@ -1,2 +1,4 @@
 # LORApp
-An app in MAUI for viewing LOR cards
+An app in MAUI for viewing LOR cards.
+
+The LORApp is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
