@@ -27,13 +27,18 @@ internal partial class ListingViewModel : ObservableObject
         }
 
         //  Go to the correct page based on the card type
-        switch (pCard.Type)
+        string cardPagePath = pCard.Type switch
         {
-            case CardTypes.Spell:
-            case CardTypes.Unit:
-                Trace.WriteLine("GO TO " + $"{nameof(Views.Cards.UnitCardPage)}?card={pCard.CardCode}");
-                await Shell.Current.GoToAsync($"{nameof(Views.Cards.UnitCardPage)}?card={pCard.CardCode}");
-                break;
+            CardTypes.Champion => $"{nameof(Views.Cards.UnitCardPage)}",
+            CardTypes.Spell => $"{nameof(Views.Cards.UnitCardPage)}",
+            CardTypes.Unit => $"{nameof(Views.Cards.UnitCardPage)}",
+            _ => string.Empty
+        };
+
+        if (!string.IsNullOrWhiteSpace(cardPagePath))
+        {
+            cardPagePath += $"?card={pCard.CardCode}";
+            await Shell.Current.GoToAsync(cardPagePath);
         }
     }
     #endregion

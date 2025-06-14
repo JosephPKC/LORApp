@@ -2,5 +2,5 @@
 
 internal abstract class BaseModel
 {
-
+  
 }

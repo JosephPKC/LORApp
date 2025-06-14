@@ -1,12 +1,15 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Diagnostics;
+using CommunityToolkit.Mvvm.ComponentModel;
+
+using LORApp.Controllers.Cards;
 using LORApp.Models.Cards;
-using System.Diagnostics;
 
 namespace LORApp.ViewModels.Cards;
 
 internal partial class UnitCardViewModel : ObservableObject, IQueryAttributable
 {
     private UnitCardModel _card;
+    private ICardController<UnitCardModel> _controller;
 
     #region Properties
     public string Name => _card.Name;
@@ -15,11 +18,13 @@ internal partial class UnitCardViewModel : ObservableObject, IQueryAttributable
     public UnitCardViewModel()
     {
         _card = new();
+        _controller = CardControllerFactory.CreateController<UnitCardModel>();
     }
 
     public UnitCardViewModel(UnitCardModel pCard)
     {
         _card = pCard;
+        _controller = CardControllerFactory.CreateController<UnitCardModel>();
     }
 
     #region IQueryAttributable
@@ -40,7 +45,7 @@ internal partial class UnitCardViewModel : ObservableObject, IQueryAttributable
         }
 
         Trace.WriteLine("Loading card " + cardCode);
-        UnitCardModel? card = CardController.LoadUnitCard(cardCode);
+        UnitCardModel? card = _controller.LoadCard(cardCode);
         if (card is not null)
         {
             _card = card;
