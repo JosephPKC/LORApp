@@ -8,6 +8,8 @@ namespace LORApp
         {
             InitializeComponent();
 
+            Routing.RegisterRoute("ChampionCardPage", typeof(ChampionCardPage));
+            Routing.RegisterRoute("SpellCardPage", typeof(SpellCardPage));
             Routing.RegisterRoute("UnitCardPage", typeof(UnitCardPage));
         }
     }

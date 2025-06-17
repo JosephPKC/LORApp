@@ -66,6 +66,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Views\Cards\ChampionCardPage.xaml.cs">
+	    <DependentUpon>ChampionCardPage.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="Views\Cards\ChampionCardPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Cards\SpellCardPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Cards\UnitCardPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

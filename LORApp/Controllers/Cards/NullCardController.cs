@@ -2,7 +2,7 @@ using LORApp.Models.Cards;
 
 namespace LORApp.Controllers.Cards;
 
-internal class NullCardController : BaseCardController, ICardController<CardModel>
+internal class NullCardController(ICardRepository pCardRepo) : BaseCardController(pCardRepo), ICardController<CardModel>
 {
   #region ICardController<CardModel>
   public CardModel? LoadCard(string pCardCode)
