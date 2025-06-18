@@ -21,9 +21,11 @@ internal abstract class BaseCardViewModel<TCard>(TCard pCard, ICardController<TC
     public virtual IEnumerable<string> Keywords => _card.KeywordRefs;
     #endregion
 
-    #region Abstracts
-    protected abstract void LoadCard(TCard pCard);
-    protected abstract void RefreshProperties();
+    #region Abstracts & Virtuals
+    protected virtual void RefreshProperties()
+    {
+        
+    }
     #endregion
 
     #region IQueryAttributable
@@ -46,7 +48,7 @@ internal abstract class BaseCardViewModel<TCard>(TCard pCard, ICardController<TC
         TCard? card = _controller.LoadCard(cardCode);
         if (card is not null)
         {
-            LoadCard(card);
+            _card = card;
             RefreshProperties();
         }
     }

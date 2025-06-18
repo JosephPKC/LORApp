@@ -1,10 +1,13 @@
+using LORApp.Controllers.Cards;
+using LORApp.Controllers.Listing;
 using LORApp.Models.Cards;
+using LORApp.Services.Repo;
 
-namespace LORApp.Controllers.Cards;
+namespace LORApp.Controllers;
 
-internal static class CardControllerFactory
+internal static class ControllerFactory
 {
-  public static ICardController<TCard> CreateController<TCard>(ICardRepository pRepo) where TCard : CardModel
+  public static ICardController<TCard> CreateCardController<TCard>(ICardRepository pRepo) where TCard : CardModel
   {
     return nameof(TCard) switch
     {
@@ -13,5 +16,10 @@ internal static class CardControllerFactory
       nameof(UnitCardModel) => (ICardController<TCard>)new UnitCardController(pRepo),
       _ => (ICardController<TCard>)new NullCardController(pRepo)
     };
+  }
+
+  public static IListingController CreateListingController()
+  {
+    return new CardListingController();
   }
 }

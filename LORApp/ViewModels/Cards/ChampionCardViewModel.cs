@@ -1,6 +1,6 @@
 ﻿using LORApp.Controllers;
-using LORApp.Controllers.Cards;
 using LORApp.Models.Cards;
+using LORApp.Services.Repo;
 
 namespace LORApp.ViewModels.Cards;
 
@@ -11,27 +11,15 @@ internal partial class ChampionCardViewModel : BaseCardViewModel<ChampionCardMod
 
     #endregion
 
-    public ChampionCardViewModel(ICardRepository pRepo) : base(new(), CardControllerFactory.CreateController<ChampionCardModel>(pRepo))
+    public ChampionCardViewModel(ICardRepository pRepo) : base(new(), ControllerFactory.CreateCardController<ChampionCardModel>(pRepo))
     {
 
     }
 
-    public ChampionCardViewModel(ICardRepository pRepo, ChampionCardModel pCard) : base(pCard, CardControllerFactory.CreateController<ChampionCardModel>(pRepo))
+    public ChampionCardViewModel(ICardRepository pRepo, ChampionCardModel pCard) : base(pCard, ControllerFactory.CreateCardController<ChampionCardModel>(pRepo))
     {
 
     }
-
-    #region BaseCardViewModel<ChampionCardModel>
-    protected override void LoadCard(ChampionCardModel pCard)
-    {
-        _card = pCard;
-    }
-
-    protected override void RefreshProperties()
-    {
-        OnPropertyChanged(nameof(Name));
-    }
-    #endregion
 
     #region Commands
 

@@ -2,14 +2,19 @@
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LORApp.Controllers;
+using LORApp.Controllers.Listing;
 using LORApp.Models.Cards;
 using LORApp.Models.Listing;
+using LORApp.Services.Repo;
 
 namespace LORApp.ViewModels.Listing;
 
 internal partial class ListingViewModel : ObservableObject
 {
     private CardListModel _cardList;
+    private ICardRepository _cardRepo;
+    private IListingController _controller;
 
     #region Properties
     public ObservableCollection<CardListingModel> CardListing { get; }
@@ -21,16 +26,22 @@ internal partial class ListingViewModel : ObservableObject
 
     public ListingViewModel()
     {
-        _cardList = new();
+        _cardRepo = CardRepositoryFactory.CreateCardRepo();
+        _controller = ControllerFactory.CreateListingController();
+
         SelectCardCommand = new AsyncRelayCommand<CardModel>(SelectCardAsync);
-        CardListing = [];
+
+        _cardList = LoadCardList();
+        CardListing = [.. _cardList.CardListing];
     }
 
-    public ListingViewModel(CardListModel pCardList)
+    private CardListModel LoadCardList()
     {
-        _cardList = pCardList;
-        SelectCardCommand = new AsyncRelayCommand<CardModel>(SelectCardAsync);
-        CardListing = (ObservableCollection<CardListingModel>)_cardList.CardListing;
+        //  Load up all cards from the repo
+        IEnumerable<CardModel> cardList = _cardRepo.FetchAll();
+
+        //  Turn the card models into listings
+        return _controller.CreateCardList(cardList);
     }
 
     #region Command Defs
