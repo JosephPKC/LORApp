@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:listing="clr-namespace:LORApp.Entities.Listing"
+             xmlns:views="clr-namespace:LORApp.Views.Listing"
+             x:Class="LORApp.Views.Listing.CardListingPage"
+             x:DataType="views:CardListingViewModel"
+             Title="CardListingPage">
+    
+    <VerticalStackLayout>
+        <HorizontalStackLayout>
+            <Label Text="Card Code" />
+            <Label Text="Name" />
+        </HorizontalStackLayout>
+
+        <CollectionView 
+            x:Name="CardListingView"
+            ItemsSource="{Binding CardListing}" 
+            SelectionMode="Single" 
+            SelectedItem="{Binding SelectedCard}"
+            SelectionChangedCommand="{Binding SelectCardCommand}">
+
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="listing:CardListingModel">
+                    <HorizontalStackLayout>
+                        <Label Text="{Binding CardCode}" />
+                        <Label Text="{Binding Name}" />
+                    </HorizontalStackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+    
+</ContentPage>

@@ -7,14 +7,9 @@
     Title="LORApp">
 
     <TabBar>
-        <ShellContent
-            Title="Home"
-            ContentTemplate="{DataTemplate local:MainPage}"
-            Route="MainPage" />
-
         <ShellContent 
             Title="List"
-            ContentTemplate="{DataTemplate local:Views.Listing.ListingPage}"
+            ContentTemplate="{DataTemplate local:Views.Listing.CardListingPage}"
             Route="ListingPage" />
     </TabBar>
 </Shell>
