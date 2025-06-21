@@ -1,6 +1,6 @@
 ﻿namespace LORCardLoader.Models;
 
-internal class RegionModel
+internal class RegionModel : BaseModel
 {
     public string Abbreviation { get; set; } = string.Empty;
     public string IconAbsolutePath { get; set; } = string.Empty;

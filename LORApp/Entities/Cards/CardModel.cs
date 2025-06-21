@@ -35,4 +35,5 @@ public abstract class CardModel : BaseModel
     public IEnumerable<RegionModel> RegionRefs { get; set; } = [];
     public IEnumerable<string> SubTypes { get; set; } = [];
     public string SuperType { get; set; } = string.Empty;
+    public IEnumerable<string> AssociatedCardCodes { get; set; } = [];
 }
