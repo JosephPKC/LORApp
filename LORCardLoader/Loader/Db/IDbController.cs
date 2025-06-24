@@ -1,11 +1,9 @@
-using LORCardLoader.Models;
-
 namespace LORCardLoader.Loader.Db;
 
 internal interface IDbController
 {
-    void Create(string pTable, string pCreateQuery);
+    void Create(string pTable, IEnumerable<string> pFieldsToCreate);
     void Drop(string pTable);
-    void Insert(string pTable, string pInsertQuery);
-    void InsertBatch(string pTable, IEnumerable<string> pInsertQueries);
+    void Insert(string pTable, IEnumerable<string> pValuesToInsert);
+    void InsertBatch(string pTable, IEnumerable<IEnumerable<string>> pValuesToInsert);
 }

@@ -16,7 +16,7 @@ internal enum SchemaTableKeys {
 internal class SchemaConfig
 {
     public string Table { get; set; } = string.Empty;
-    public IEnumerable<string> CreateQueries { get; set; } = [].
+    public IEnumerable<string> CreateQueries { get; set; } = [];
 }
 
 internal static class DbSchema
@@ -27,7 +27,7 @@ internal static class DbSchema
             SchemaTableKeys.Keywords, new() {
                 Table = "Keywords",
                 CreateQueries = [
-                    @"RefCode TEXT PRIMARY KEY UNIQUE 
+                    @"RefCode TEXT PRIMARY KEY UNIQUE
                                    NOT NULL COLLATE NOCASE",
                     "Name TEXT NOT NULL COLLATE NOCASE",
                     "Description TEXT NOT NULL COLLATE NOCASE"
@@ -77,7 +77,7 @@ internal static class DbSchema
                     @"LevelUpCardCode TEXT NOT NULL COLLATE NOCASE
                                            REFERENCES Cards (CardCode)
                                            ON DELETE CASCADE
-                                           ON DELETE UPDATE"
+                                           ON DELETE CASCADE"
                 ]
             }
         },
