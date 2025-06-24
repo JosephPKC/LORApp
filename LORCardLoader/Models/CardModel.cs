@@ -1,6 +1,6 @@
 ﻿namespace LORCardLoader.Models;
 
-internal abstract class CardModel : BaseModel
+internal class CardModel : BaseModel
 {
     public IEnumerable<string> AssociatedCards { get; set; } = [];
     public IEnumerable<string> AssociatedCardRefs { get; set; } = [];

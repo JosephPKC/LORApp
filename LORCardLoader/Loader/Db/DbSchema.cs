@@ -2,6 +2,7 @@ namespace LORCardLoader.Loader.Db;
 
 internal enum SchemaTableKeys {
     Keywords,
+    Vocab,
     Regions,
     Cards,
     ChampionCards,
@@ -35,6 +36,17 @@ internal static class DbSchema
             }
         },
         {
+            SchemaTableKeys.Vocab, new() {
+                Table = "Vocab",
+                CreateQueries = [
+                    @"RefCode TEXT PRIMARY KEY UNIQUE
+                                   NOT NULL COLLATE NOCASE",
+                    "Name TEXT NOT NULL COLLATE NOCASE",
+                    "Description TEXT NOT NULL COLLATE NOCASE"
+                ]
+            }
+        },
+        {
             SchemaTableKeys.Regions, new() {
                 Table = "Regions",
                 CreateQueries = [
@@ -58,7 +70,9 @@ internal static class DbSchema
                     "ArtistName TEXT NOT NULL COLLATE NOCASE",
                     "ArtImagePath TEXT NOT NULL COLLATE NOCASE",
                     "Description TEXT NOT NULL COLLATE NOCASE",
-                    "FlavorText TEXT NOT NULL COLLATE NOCASE"
+                    "DescriptionFormatted TEXT NOT NULL COLLATE NOCASE",
+                    "FlavorText TEXT NOT NULL COLLATE NOCASE",
+                    "IsCollectible INTEGER DEFAULT (1)"
                 ]
             }
         },
@@ -74,6 +88,7 @@ internal static class DbSchema
                     "Attack INTEGER DEFAULT (0)",
                     "Health INTEGER DEFAULT (0)",
                     "LevelUpDescription TEXT NOT NULL COLLATE NOCASE",
+                    "LevelUpDescriptionFormatted TEXT NOT NULL COLLATE NOCASE",
                     @"LevelUpCardCode TEXT NOT NULL COLLATE NOCASE
                                            REFERENCES Cards (CardCode)
                                            ON DELETE CASCADE
@@ -109,6 +124,8 @@ internal static class DbSchema
             }
         },
         {
+            //  Note: Ignoring on primary key conflict as
+            //  It appears that some cards have duplicate card refs in its assoc array.
             SchemaTableKeys.CardAssocCardLink, new() {
                 Table = "Link_Cards_AssociatedCards",
                 CreateQueries = [
@@ -123,7 +140,7 @@ internal static class DbSchema
                     @"PRIMARY KEY (
                         CardCode COLLATE NOCASE,
                         AssociatedCardCode COLLATE NOCASE
-                    )"
+                    ) ON CONFLICT IGNORE"
                 ]
             }
         },

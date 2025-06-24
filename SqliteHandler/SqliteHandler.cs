@@ -110,7 +110,6 @@ internal class SqliteHandler : ISqlite, IDisposable
 
     private int DoTransaction(string pQuery)
     {
-        Console.WriteLine($"QUERY: {pQuery}");
         int res = 0;
         _conn.Open();
         using IDbTransaction trans = _conn.BeginTransaction();

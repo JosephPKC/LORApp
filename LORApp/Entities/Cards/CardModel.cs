@@ -13,8 +13,12 @@ public enum CardRarities
 
 public enum CardTypes
 {
+    Ability,
     Champion,
+    Equipment,
+    Landmark,
     Spell,
+    Trap,
     Unit
 }
 
@@ -26,10 +30,12 @@ public abstract class CardModel : BaseModel
     public string CardCode { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string DescriptionFormatted { get; set; } = string.Empty;
     public string FlavorText { get; set; } = string.Empty;
     public string ArtUriPath { get; set; } = string.Empty;
     public string Artist { get; set; } = string.Empty;
     public int Cost { get; set; } = 0;
+    public bool IsCollectible { get; set; } = false;
 
     public IEnumerable<string> KeywordRefs { get; set; } = [];
     public IEnumerable<RegionModel> RegionRefs { get; set; } = [];

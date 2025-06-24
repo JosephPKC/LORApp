@@ -31,7 +31,6 @@ internal static class CardListMapper
             CardRarity = (CardRarities)pDr["CardRarity"],
             RegionIcon1 = pDr["RegionIcon1"].ToString() ?? string.Empty,
             RegionIcon2 = pDr["RegionIcon2"].ToString() ?? string.Empty,
-            IsFavorite = isFavorite is null || isFavorite.Equals("FALSE", StringComparison.CurrentCultureIgnoreCase)
         };
     }
 }

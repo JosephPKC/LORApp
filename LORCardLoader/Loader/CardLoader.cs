@@ -9,8 +9,8 @@ namespace LORCardLoader.Loader;
 
 internal class CardLoader(IDbController pDb, IModelParser pParser)
 {
+    private static readonly string _global = "globals-en_us.json";
     private static readonly string[] _jsons = [
-        "globals-en_us.json",
         "set1-en_us.json",
         "set2-en_us.json",
         "set3-en_us.json",
@@ -32,6 +32,7 @@ internal class CardLoader(IDbController pDb, IModelParser pParser)
         SchemaTableKeys.UnitCards,
         SchemaTableKeys.Cards,
         SchemaTableKeys.Keywords,
+        SchemaTableKeys.Vocab,
         SchemaTableKeys.Regions
     ];
 
@@ -48,7 +49,7 @@ internal class CardLoader(IDbController pDb, IModelParser pParser)
 
         ResetAllTables();
         LoadGlobals(pJsonDir);
-        //LoadAllSets(pJsonDir);
+        LoadAllSets(pJsonDir);
     }
 
     private List<string> GetMissingFiles(string pJsonDir) {
@@ -75,39 +76,31 @@ internal class CardLoader(IDbController pDb, IModelParser pParser)
 
     private void LoadGlobals(string pJsonDir)
     {
-        string jsonFile = $"{pJsonDir}\\{_jsons[0]}";
+        string jsonFile = $"{pJsonDir}\\{_global}";
         GlobalModel? globals = _parser.GetModel<GlobalModel>(jsonFile) ??
             throw new Exception($"ERROR: Could not load the globals from {jsonFile}.");
 
-        HashSet<string> keywords = [];
-        foreach (var terms in globals.VocabTerms)
-        {
-            keywords.Add(terms.NameRef.ToUpper());
-        }
-
-        foreach (var keys in globals.Keywords)
-        {
-            if (keywords.Contains(keys.NameRef.ToUpper()))
-            {
-                Console.WriteLine($"Found Hit: {keys.NameRef}");
-            }
-        }
-
         //  Load the keywords
-        Console.WriteLine($"Loading Keyword Globals");
+        Console.Write("Loading Keyword Globals... ");
         IInsertBuilder<KeywordModel> keywordQueryBuilder = InsertBuilderFactory.CreateInsertBuilder<KeywordModel>();
-        //InsertAll(SchemaTableKeys.Keywords, globals.VocabTerms, keywordQueryBuilder);
         InsertAll(SchemaTableKeys.Keywords, globals.Keywords, keywordQueryBuilder);
+        Console.WriteLine("OK");
+
+        Console.Write("Loading Vocab Globals... ");
+        InsertAll(SchemaTableKeys.Vocab, globals.VocabTerms, keywordQueryBuilder);
+        Console.WriteLine("OK");
         //  Load the regions
-        Console.WriteLine($"Loading Region Globals");
+        Console.Write("Loading Region Globals... ");
         IInsertBuilder<RegionModel> regionQueryBuilder = InsertBuilderFactory.CreateInsertBuilder<RegionModel>();
         InsertAll(SchemaTableKeys.Regions, globals.Regions, regionQueryBuilder);
+        Console.WriteLine("OK");
     }
 
     private void LoadAllSets(string pJsonDir)
     {
         foreach (string json in _jsons)
         {
+            Console.WriteLine($"Loading from json {json}...");
             LoadSet(pJsonDir, json);
         }
     }
@@ -121,33 +114,29 @@ internal class CardLoader(IDbController pDb, IModelParser pParser)
         }
 
         foreach (CardModel card in cards) {
-            switch (card.Type.ToUpper())
+            InsertCard(card);
+            if (string.Equals(card.Type, "SPELL", StringComparison.CurrentCultureIgnoreCase))
             {
-                case "CHAMPION":
-                    InsertCard(card);
-                    Insert(SchemaTableKeys.ChampionCards, card, InsertBuilderFactory.CreateCardInsertBuilder(card.Type));
-                    break;
-                case "SPELL":
-                    InsertCard(card);
-                    Insert(SchemaTableKeys.SpellCards, card, InsertBuilderFactory.CreateCardInsertBuilder(card.Type));
-                    break;
-                case "UNIT":
-                    InsertCard(card);
-                    Insert(SchemaTableKeys.UnitCards, card, InsertBuilderFactory.CreateCardInsertBuilder(card.Type));
-                    break;
-                default:
-                    Console.WriteLine($"{card.Type} is not supported.");
-                    break;
+                //  Seems like the spell speed is also a keyword
+                // Insert(SchemaTableKeys.SpellCards, card, InsertBuilderFactory.CreateCardInsertBuilder("SPELL"));
+            }
+            else if (string.Equals(card.Supertype, "CHAMPION", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Insert(SchemaTableKeys.ChampionCards, card, InsertBuilderFactory.CreateCardInsertBuilder("CHAMPION"));
+            }
+            else if (string.Equals(card.Type, "UNIT", StringComparison.CurrentCultureIgnoreCase))
+            {
+                Insert(SchemaTableKeys.UnitCards, card, InsertBuilderFactory.CreateCardInsertBuilder("UNIT"));
             }
         }
     }
 
     private void InsertCard(CardModel pCard)
     {
-        Console.WriteLine($"INSERT {pCard.CardCode} - {pCard.Name} - {pCard.Type}");
+        Console.Write($"INSERT {pCard.CardCode} - {pCard.Name} - {pCard.Type}... ");
         Insert(SchemaTableKeys.Cards, pCard, InsertBuilderFactory.CreateInsertBuilder<CardModel>());
 
-        foreach (string assocCard in pCard.AssociatedCards)
+        foreach (string assocCard in pCard.AssociatedCardRefs)
         {
             InsertLink(SchemaTableKeys.CardAssocCardLink, [pCard.CardCode, assocCard]);
         }
@@ -166,6 +155,7 @@ internal class CardLoader(IDbController pDb, IModelParser pParser)
         {
             InsertLink(SchemaTableKeys.CardSubtypeLink, [pCard.CardCode, subtype]);
         }
+        Console.WriteLine("OK");
     }
 
     private void ResetTable(SchemaTableKeys pTableKey)

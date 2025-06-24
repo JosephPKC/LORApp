@@ -21,7 +21,6 @@ internal class JsonModelParser : IModelParser
     {
         using StreamReader reader = new(pFile);
         string json = reader.ReadToEnd();
-        Console.WriteLine("JSON: " + json);
         return JsonSerializer.Deserialize<IEnumerable<TModel>>(json, Options);
     }
     #endregion

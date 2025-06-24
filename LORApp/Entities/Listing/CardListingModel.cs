@@ -11,5 +11,5 @@ public class CardListingModel : BaseModel
     public CardRarities CardRarity { get; set; } = CardRarities.Common;
     public string RegionIcon1 { get; set; } = string.Empty;
     public string RegionIcon2 { get; set; } = string.Empty;
-    public bool IsFavorite { get; set; } = false;
+    public bool IsCollectible { get; set; } = false;
 }
