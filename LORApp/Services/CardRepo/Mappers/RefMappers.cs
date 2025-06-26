@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Data;
 
 using LORApp.Entities.Refs;
@@ -9,41 +8,31 @@ internal static class RefMappers
 {
     public static IEnumerable<KeywordModel> MapKeywordList(DataTable pDt)
     {
-        List<KeywordModel> models = [];
-        foreach (DataRow dr in pDt.Rows)
-        {
-            models.Add(MapKeyword(dr));
-        }
-        return models;
+        return MapperUtils.GetAllModels(pDt, MapKeyword);
     }
 
     public static KeywordModel MapKeyword(DataRow pDr)
     {
         return new()
         {
-            RefCode = pDr["RefCode"],
-            Name = pDr["Name"],
-            Description = pDr["Description"]
+            RefCode = MapperUtils.GetString(pDr, "RefCode"),
+            Name = MapperUtils.GetString(pDr, "Name"),
+            Description = MapperUtils.GetString(pDr, "Description")
         };
     }
 
     public static IEnumerable<RegionModel> MapRegionList(DataTable pDt)
     {
-        List<RegionModel> models = [];
-        foreach (DataRow dr in pDt.Rows)
-        {
-            models.Add(MapRegion(dr));
-        }
-        return models;
+        return MapperUtils.GetAllModels(pDt, MapRegion);
     }
 
     public static RegionModel MapRegion(DataRow pDr)
     {
         return new()
         {
-            RefCode = pDr["RefCode"],
-            Name = pDr["Name"],
-            IconPath = pDr["IconPath"]
+            RefCode = MapperUtils.GetString(pDr, "RefCode"),
+            Name = MapperUtils.GetString(pDr, "Name"),
+            IconPath = MapperUtils.GetString(pDr, "IconPath")
         };
     }
 }

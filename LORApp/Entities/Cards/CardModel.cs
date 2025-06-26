@@ -37,8 +37,8 @@ public abstract class CardModel : BaseModel
     public int Cost { get; set; } = 0;
     public bool IsCollectible { get; set; } = false;
 
-    public IEnumerable<string> KeywordRefs { get; set; } = [];
-    public IEnumerable<RegionModel> RegionRefs { get; set; } = [];
+    public IEnumerable<KeywordModel> Keywords { get; set; } = [];
+    public IEnumerable<RegionModel> Regions { get; set; } = [];
     public IEnumerable<string> SubTypes { get; set; } = [];
     public string SuperType { get; set; } = string.Empty;
     public IEnumerable<string> AssociatedCardCodes { get; set; } = [];

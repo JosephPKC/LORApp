@@ -88,11 +88,7 @@ internal static class DbSchema
                     "Attack INTEGER DEFAULT (0)",
                     "Health INTEGER DEFAULT (0)",
                     "LevelUpDescription TEXT NOT NULL COLLATE NOCASE",
-                    "LevelUpDescriptionFormatted TEXT NOT NULL COLLATE NOCASE",
-                    @"LevelUpCardCode TEXT NOT NULL COLLATE NOCASE
-                                           REFERENCES Cards (CardCode)
-                                           ON DELETE CASCADE
-                                           ON DELETE CASCADE"
+                    "LevelUpDescriptionFormatted TEXT NOT NULL COLLATE NOCASE"
                 ]
             }
         },

@@ -20,7 +20,6 @@ internal class InsertBuilderFactory
         return pCardType.ToUpper() switch
         {
             "CHAMPION" => new ChampionCardInsertBuilder(),
-            "SPELL" => new SpellCardInsertBuilder(),
             "UNIT" => new UnitCardInsertBuilder(),
             _ => throw new NotSupportedException($"Card type {pCardType} not supported.")
         };

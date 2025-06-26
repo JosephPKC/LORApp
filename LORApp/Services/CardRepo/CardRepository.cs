@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using System.Collections.Generic;
+using System.Diagnostics;
 
 using LORApp.Entities.Cards;
 using LORApp.Entities.Listing;
@@ -14,114 +14,105 @@ namespace LORApp.Services.CardRepo;
 internal class CardRepository : ICardGateway
 {
     private readonly IRepo _repo;
-    private readonly IRepoCache _cache;
-    private readonly IModelMapperManager _mapper;
+    private readonly CardCache _cardCache;
+    private readonly CardListCache _cardListCache;
+    private readonly RefCache _refCache;
 
-
-    // CACHE
-    private readonly Dictionary<string, RegionModel> _regionCache = [];
-    private readonly Dictionary<string, KeywordModel> _keywordCache = [];
-    private readonly Dictionary<string, KeywordModel> _vocabCache = [];
-    private readonly Dictionary<string, CardModel> _cardCache = [];
-    private Dictionary<string, CardListingModel>? _cardListingCache = null;
-    // ENDCACHE
-
-    public CardRepository(IRepo pRepo, IRepoCache pCache, IModelMapperManager pMapper)
+    public CardRepository(IRepo pRepo)
     {
         _repo = pRepo;
-        _cache = pCache;
-        _mapper = pMapper;
-
-        DataTable regionDt = _repo.Read("Regions", null, null);
-        IEnumerable<RegionModel> regions = _mapper.MapList<RegionModel>(regionDt);
-        _regionCache = regions.ToDictionary(x => x.RefCode, x => x);
-
-        DataTable keywordDt = _repo.Read("Keywords", null, null);
-        IEnumerable<KeywordModel> keywords = _mapper.MapList<KeywordModel>(keywordDt);
-        _keywordCache = keywords.ToDictionary(x => x.RefCode, x => x);
-
-        DataTable vocabDt = _repo.Read("Vocab", null, null);
-        IEnumerable<KeywordModel> vocab = _mapper.MapList<KeywordModel>(vocabDt);
-        _vocabCache = vocab.ToDictionary(x => x.RefCode, x => x);
+        _cardCache = new();
+        _cardListCache = new();
+        DataTable dt = _repo.Read("Keywords", null, null);
+        IEnumerable<KeywordModel> keywords = RefMappers.MapKeywordList(dt);
+        dt = _repo.Read("Vocab", null, null);
+        IEnumerable<KeywordModel> vocab = RefMappers.MapKeywordList(dt);
+        dt = _repo.Read("Regions", null, null);
+        IEnumerable<RegionModel> regions = RefMappers.MapRegionList(dt);
+        _refCache = new(keywords, vocab, regions);
     }
 
     #region ICardGateway
     public TCard? FetchCard<TCard>(string pCardCode) where TCard : CardModel
     {
-        if (_cardCache.ContainsKey(pCardCode)) {
-            return _cardCache[pCardCode];
+        if (string.IsNullOrWhiteSpace(pCardCode))
+        {
+            Trace.WriteLine($"CardCode is blank.");
+            return null;
         }
 
-        DataTable dt = _repo.Read(ConfigManager.CardTable, null, [new("CardCode", pCardCode)]);
-        //  Get links
+        CardCacheResult<TCard> cardResult = _cardCache.GetCard<TCard>(pCardCode);
+        if (cardResult.Type == CardHitTypes.Found) {
+            return cardResult.CardModel;
+        }
 
-        TCard card = _mapper.MapCard<TCard>(dt);
-        _cardCache.Add(pCardCode, card);
+        if (cardResult.Type == CardHitTypes.Null)
+        {
+            Trace.WriteLine($"{pCardCode} has a null cache result.");
+            return null;
+        }
+
+        //  Retrieve and build the card model
+        DataTable cardDt = _repo.Read(ConfigManager.CardTable, null, [new("CardCode", pCardCode)]);
+
+        //  Get the base card model
+        TCard? card = CardMappers.MapCard<TCard>(cardDt);
+        if (card is null)
+        {
+            //  Note, we are caching a null result to avoid redoing the operations.
+            //  Store the null result, so that we know that the card code is invalid or incorrect.
+            _cardCache.PutCard(pCardCode, card);
+            Trace.WriteLine($"{pCardCode} is invalid in some way.");
+            return null;
+        }
+
+        //  Append any specific card type info
+        switch (typeof(TCard).Name)
+        {
+            case nameof(ChampionCardModel):
+                DataTable champDt = _repo.Read(ConfigManager.ChampionCardTable, null, [new("CardCode", pCardCode)]);
+                CardMappers.AppendChampionCardInfo((card as ChampionCardModel)!, champDt);
+                break;
+            case nameof(UnitCardModel):
+                DataTable unitDt = _repo.Read(ConfigManager.UnitCardTable, null, [new("CardCode", pCardCode)]);
+                CardMappers.AppendUnitCardInfo((card as UnitCardModel)!, unitDt);
+                break;
+        }
+
+        //  Get and append card links
+        DataTable assocCardDt = _repo.Read(ConfigManager.CardAssocCardLinkTable, null, [new("CardCode", pCardCode)]);
+        CardMappers.AppendAssociatedCards(card, assocCardDt);
+        DataTable keywordDt = _repo.Read(ConfigManager.CardKeywordLinkTable, null, [new("CardCode", pCardCode)]);
+        CardMappers.AppendCardKeywords(card, keywordDt, _refCache);
+        DataTable regionDt = _repo.Read(ConfigManager.CardRegionLinkTable, null, [new("CardCode", pCardCode)]);
+        CardMappers.AppendCardRegions(card, regionDt, _refCache);
+        DataTable subTypeDt = _repo.Read(ConfigManager.CardSubtypeLinkTable, null, [new("CardCode", pCardCode)]);
+        CardMappers.AppendCardSubtypes(card, subTypeDt);
+
+        _cardCache.PutCard(pCardCode, card);
         return card;
     }
 
     public CardListModel FetchCardList()
     {
-        if (_cardListingCache is not null)
+        CardListModel? cardListFromCache = _cardListCache.GetCardList();
+        if (cardListFromCache is not null)
         {
-            return _cardListingCache;
+            return cardListFromCache;
         }
 
-        DataTable dt = _repo.Read(ConfigManager.CardTable, null, null);
-        //  Get card listing links
-
-        IEnumerable<CardListingModel> cardListing = _mapper.MapCardList(dt);
-
-        CardListModel cardList = new()
+        //  Retrieve and build card list
+        DataTable allCardsDt = _repo.Read(ConfigManager.CardTable, null, null);
+        CardListModel cardList = CardListMapper.MapCardList(allCardsDt);
+        
+        foreach (CardListingModel cardListing in cardList.CardListing)
         {
-            CardListing = cardListing
-        };
-        _cardListingCache = cardList;
+            DataTable regionDt = _repo.Read(ConfigManager.CardRegionLinkTable, null, [new("CardCode", cardListing.CardCode)]);
+            CardListMapper.AppendCardListingRegion(cardListing, regionDt, _refCache);
+        }
+
+        _cardListCache.LoadCardList(cardList);
         return cardList;
     }
     #endregion
-
-    private void LoadCardList()
-    {
-        //  Get all Cards
-        //  For each card:
-        //      Get region links, keywords, subtypes.
-        //      Create card listing
-    }
-
-    private void LoadCard()
-    {
-        //  Get Card info
-        //  Get card's links (regions, keywords, subtypes, assoc cards)
-        //  Parse enums from strings
-        //  Get keywords/vocabs from card descriptions
-        //  Load up the descriptions for keywords/vocabs
-        //  Create card model
-    }
-    {
-        new CardListingModel()
-        {
-            Name = "Unit Card 1",
-            CardCode = "UNITCODE1",
-            CardRarity = CardRarities.Rare,
-            CardType = CardTypes.Unit,
-            Cost = 1,
-        },
-        new CardListingModel()
-        {
-            Name = "Spell Card 2",
-            CardCode = "SPELLCODE2",
-            CardRarity = CardRarities.Common,
-            CardType = CardTypes.Spell,
-            Cost = 2,
-        },
-        new CardListingModel()
-        {
-            Name = "The Champion",
-            CardCode = "CHAMPIONCODE3",
-            CardRarity = CardRarities.Champion,
-            CardType = CardTypes.Champion,
-            Cost = 6,
-        },
-    };
 }
