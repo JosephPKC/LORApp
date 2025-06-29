@@ -20,16 +20,21 @@ internal static class CardListMapper
 
     public static CardListingModel MapCardListing(DataRow pDr)
     {
-        return new()
+        CardListingModel card = new()
         {
             CardCode = pDr["CardCode"].ToString() ?? string.Empty,
             Name = pDr["Name"].ToString() ?? string.Empty,
             Cost = (int)pDr["Cost"],
             CardType = (CardTypes)pDr["CardType"],
-            CardRarity = (CardRarities)pDr["CardRarity"],
-            RegionIcon1 = pDr["RegionIcon1"].ToString() ?? string.Empty,
-            RegionIcon2 = pDr["RegionIcon2"].ToString() ?? string.Empty,
+            CardRarity = (CardRarities)pDr["CardRarity"]
         };
+
+        List<string> SearchableText = [];
+        AppendSearchableText(SearchableText, pDr, "Name");
+        AppendSearchableText(SearchableText, pDr, "Description");
+        card.SearchableText = SearchableText;
+
+        return card;
     }
 
     public static void AppendCardListingRegion(CardListingModel pModel, DataTable pRegionsDt, RefCache pCache)
@@ -38,11 +43,13 @@ internal static class CardListMapper
         if (pRegionsDt.Rows.Count > 0)
         {
             pModel.RegionIcon1 = GetCardRegionIconPath(pRegionsDt.Rows[0], pCache) ?? string.Empty;
+            pModel.Region1 = pRegionsDt.Rows[0]["Name"].ToString() ?? string.Empty;
         }
 
         if (pRegionsDt.Rows.Count > 1)
         {
             pModel.RegionIcon1 = GetCardRegionIconPath(pRegionsDt.Rows[1], pCache) ?? string.Empty;
+            pModel.Region1 = pRegionsDt.Rows[1]["Name"].ToString() ?? string.Empty;
         }
     }
 
@@ -55,5 +62,49 @@ internal static class CardListMapper
             return null;
         }
         return region.IconPath;
+    }
+
+    public static void AppendKeywordsAsSearchableText(
+        CardListingModel pCard,
+        DataTable pKeywordsDt,
+        RefCache pCache)
+    {
+        List<string> searchableTexts = [.. pCard.SearchableText];
+
+        foreach (DataRow keywordDr in pKeywordsDt.Rows)
+        {
+            string? refCode = keywordDr["RefCode"].ToString();
+            if (string.IsNullOrWhiteSpace(refCode))
+            {
+                Trace.WriteLine($"Keyword refcode for {pCard.CardCode} is missing.");
+                continue;
+            }
+
+            if (!pCache.Keywords.TryGetValue(refCode, out KeywordModel? keyword) || keyword is null)
+            {
+                Trace.WriteLine($"Keyword {refCode} not found in cache.");
+                continue;
+            }
+
+            searchableTexts.Add(keyword.Name);
+        }
+
+        pCard.SearchableText = searchableTexts;
+    }
+
+    public static void AppendChampionSearchableText(CardListingModel pCard, DataRow pChampionDr)
+    {
+        List<string> searchableTexts = [.. pCard.SearchableText];
+        AppendSearchableText(searchableTexts, pChampionDr, "LevelUpDescription");
+        pCard.SearchableText = searchableTexts;
+    }
+
+    private static void AppendSearchableText(ICollection<string> pTexts, DataRow pDr, string pField)
+    {
+        string? text = pDr[pField].ToString();
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            pTexts.Add(text);
+        }
     }
 }

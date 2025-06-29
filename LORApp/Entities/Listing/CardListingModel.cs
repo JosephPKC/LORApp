@@ -10,6 +10,9 @@ public class CardListingModel : BaseModel
     public CardTypes CardType { get; set; } = CardTypes.Unit;
     public CardRarities CardRarity { get; set; } = CardRarities.Common;
     public string RegionIcon1 { get; set; } = string.Empty;
+    public string Region1 { get; set; } = string.Empty;
     public string RegionIcon2 { get; set; } = string.Empty;
+    public string Region2 { get; set; } = string.Empty;
     public bool IsCollectible { get; set; } = false;
+    public IEnumerable<string> SearchableText { get; set; } = [];
 }

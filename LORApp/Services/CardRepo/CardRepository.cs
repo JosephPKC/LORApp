@@ -104,11 +104,24 @@ internal class CardRepository : ICardGateway
         //  Retrieve and build card list
         DataTable allCardsDt = _repo.Read(ConfigManager.CardTable, null, null);
         CardListModel cardList = CardListMapper.MapCardList(allCardsDt);
-        
+
         foreach (CardListingModel cardListing in cardList.CardListing)
         {
             DataTable regionDt = _repo.Read(ConfigManager.CardRegionLinkTable, null, [new("CardCode", cardListing.CardCode)]);
             CardListMapper.AppendCardListingRegion(cardListing, regionDt, _refCache);
+
+            DataTable keywordDt = _repo.Read(ConfigManager.CardKeywordLinkTable, null, [new("CardCode", cardListing.CardCode)]);
+            CardListMapper.AppendKeywordsAsSearchableText(cardListing, keywordDt, _refCache);
+
+            if (cardListing.CardType = CardTypes.Champion)
+            {
+                DataTable championDt = _repo.Read(ConfigManager.ChampionCardTable, null, [new("CardCode", cardListing.CardCode)]);
+                if (championDt.Rows.Count > 0)
+                {
+                    DataRow championDr = championDt.Rows[0];
+                    CardListMapper.AppendChampionSearchableText(cardListing, championDr);
+                }
+            }
         }
 
         _cardListCache.LoadCardList(cardList);
